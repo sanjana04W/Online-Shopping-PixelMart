@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NextLevelShop — Full Feature Demo</title>
+<meta name="description" content="Next-level demo online shopping app with dark/light theme, wishlist, cart, quick view, confetti, search suggestions, coupons, filters, recently viewed, stock alerts, and checkout summary.">
+<style>
+:root{
+  --bg:#f6f8fb; --card:#ffffff; --muted:#55606a; --accent:#0ea5e9; --accent-2:#06b6d4;
+  --success:#10b981; --danger:#ef4444; --glass:rgba(255,255,255,0.04);
+  --glass-2: rgba(255,255,255,0.02);
+  --max-w:1200px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+body{margin:0;background:linear-gradient(-45deg,#0ea5e9,#1e8091,#f6f8fb,#3b82f6);background-size:400% 400%;animation:gradientBG 15s ease infinite;color:var(--muted);transition:.3s;}
+body.dark{background:#111;color:#ddd}
+@keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+*{box-sizing:border-box}
+.wrap{max-width:var(--max-w);margin:20px auto;padding:18px}
+header{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:46px;height:46px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+h1{margin:0;color:inherit}
+p{margin:0}
+.controls{display:flex;gap:12px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.search{flex:1;display:flex;background:var(--glass);padding:8px;border-radius:10px;align-items:center;gap:8px;position:relative}
+.search input{flex:1;background:transparent;border:0;color:inherit;padding:6px;font-size:14px;outline:none}
+select,input[type=text],button{padding:8px 12px;border-radius:10px;border:0;background:var(--card);color:inherit}
+.btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#001018;font-weight:700;cursor:pointer}
+.small{font-size:13px;color:var(--muted)}
+.main{display:grid;grid-template-columns:1fr 380px;gap:18px}
+@media(max-width:980px){.main{grid-template-columns:1fr}.cart-panel{order:2}}
+.products{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:1100px){.products{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.products{grid-template-columns:1fr}}
+.card{background:var(--card);padding:14px;border-radius:12px;color:inherit;position:relative;transition:transform .2s;overflow:hidden}
+.card:hover{transform:translateY(-6px)}
+.thumb{height:220px;border-radius:10px;background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:12px;position:relative;cursor:pointer}
+.price{background:rgba(0,0,0,0.35);padding:6px 8px;border-radius:8px;font-weight:700;color:white}
+.meta{padding-top:10px;display:flex;justify-content:space-between;align-items:center}
+.badges{display:flex;gap:6px}
+.badge{font-size:12px;padding:6px;border-radius:999px;background:rgba(0,0,0,0.12)}
+.stars{display:inline-block;color:#facc15}
+.cart-panel{background:var(--card);padding:14px;border-radius:12px;height:fit-content;position:sticky;top:20px}
+.cart-items{margin-top:12px;max-height:360px;overflow:auto;padding-right:6px}
+.cart-row{display:flex;gap:10px;margin-bottom:10px;align-items:center}
+.cart-row .mini{width:56px;height:56px;border-radius:8px;background-size:cover;background-position:center}
+.qty{display:flex;gap:6px;align-items:center}
+.qty button{width:28px;height:28px;border-radius:50%;border:0;background:var(--accent);color:white;font-weight:700;cursor:pointer}
+.wishlist-btn{background:transparent;border:0;cursor:pointer;font-size:18px}
+.modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+.modal{background:var(--card);padding:16px;border-radius:12px;max-width:920px;width:100%;color:inherit;overflow-y:auto;max-height:90vh}
+.skeleton{background:linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.05), rgba(0,0,0,0.02));border-radius:6px;min-height:12px}
+form input,form select{width:100%;padding:8px;border-radius:8px;border:0;background:var(--bg);color:inherit}
+.muted{color:var(--muted)}
+.pill{padding:6px 8px;border-radius:999px;background:var(--glass-2);font-weight:600;cursor:pointer}
+a{color:inherit;text-decoration:none}
+.empty{opacity:0.7;text-align:center;padding:24px}
+.discount{color:var(--success);font-weight:700}
+.fade-in{animation:fadeIn .28s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.cart-items::-webkit-scrollbar{width:8px}
+.cart-items::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.12)}
+.quick-view{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.95);color:#001018;display:flex;flex-direction:column;justify-content:center;align-items:center;border-radius:10px;opacity:0;pointer-events:none;transition:.2s;z-index:10}
+.card:hover .quick-view{opacity:1;pointer-events:auto}
+#recentlyViewed{display:flex;gap:12px;overflow-x:auto;padding:8px;margin:12px 0}
+#recentlyViewed .card{min-width:180px;flex-shrink:0}
+.confetti-piece{position:fixed;width:6px;height:6px;pointer-events:none;z-index:9999;opacity:1;border-radius:50%;animation:confettiFall 2s linear forwards}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(800px) rotate(720deg);opacity:0}}
+.stock-alert{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;color:white;font-weight:700;z-index:9999;animation:fadeInAlert 0.5s ease forwards}
+.stock-success{background:var(--success)}
+.stock-danger{background:var(--danger)}
+@keyframes fadeInAlert{0%{opacity:0;transform:translateY(-20px)}100%{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="brand"><div class="logo">PM</div><div><h1>PixelMart</h1><p class="small muted">Full feature demo</p></div></div>
+<div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+<div class="pill" id="themeToggle" role="button" title="Toggle theme">🌙</div>
+<div class="pill" id="viewOrders" role="button">Orders</div>
+<button id="viewCartBtn" class="btn-primary">Open Cart</button>
+</div>
+</header>
+
+<div class="controls">
+<div class="search">
+<input id="search" placeholder="Search products, e.g. 'sneakers'" autocomplete="off"/>
+<div id="suggestions" style="position:absolute;left:0;right:0;top:40px;background:var(--card);border-radius:8px;display:none;padding:8px;z-index:40"></div>
+</div>
+<select id="category"><option value="all">All categories</option><option value="shoes">Shoes</option><option value="electronics">Electronics</option><option value="home">Home</option></select>
+<button id="clearFilters">Reset</button>
+</div>
+
+<div id="recentlyViewed"></div>
+
+<main class="main">
+<section>
+<div style="display:flex;justify-content:space-between;align-items:end">
+<h2>Trending products</h2><div class="muted">Items: <span id="count">0</span></div>
+</div>
+<div id="products" class="products" style="margin-top:14px"></div>
+</section>
+<aside class="cart-panel" style="background-color: #d6d0d0; padding: 14px; border-radius: 12px;">
+<div class="cart-title" style="display:flex;justify-content:space-between;align-items:center">
+<div style="background-color: #eaeaea; padding: 10px; border-radius: 8px;">
+  <h3>Your cart</h3>
+  <div class="small muted">Saved • <span id="couponLabel">No coupon</span></div>
+</div>
+<div class="muted">🛒 <span id="cartCount">0</span></div>
+</div>
+<div id="cartItems" class="cart-items"><div class="empty">Cart is empty.</div></div>
+<input id="coupon" placeholder="Enter coupon code"/>
+<button id="applyCoupon">Apply</button>
+<div class="total">
+<div class="muted small">Subtotal <span id="subtotal">$0</span></div>
+<div class="small muted">Shipping <span id="shippingLabel">—</span></div>
+<div class="small muted">Tax <span id="taxLabel">—</span></div>
+<div>Total <strong id="grandTotal">$0</strong></div>
+<div style="margin-top:8px"><button id="checkoutBtn" class="btn-primary">Checkout</button><button id="clearCart">Clear</button></div>
+</div>
+</aside>
+</main>
+</div>
+
+<div id="backdrop" class="modal-backdrop"><div class="modal" id="modalContent"></div></div>
+
+<script>
+// DATA & STATE
+const productsData = [
+  {
+    id: 'p1',
+    title: 'Aurora Running Shoes',
+    price: 129.00,
+    category: 'shoes',
+    images: ['67095287e846e09a7435134425b32a40.jpg'],
+    rating: 4.6,
+    variants: [
+      { sku: 'p1-bk', label: 'Black', stock: 5 },
+      { sku: 'p1-bl', label: 'Blue', stock: 3 }
+    ],
+    badges: ['Trending']
+  },
+  {
+    id: 'p2',
+    title: 'Compact Bluetooth Speaker',
+    price: 59.99,
+    category: 'electronics',
+    images: ['3b65042b9ca350c1128bde0ebb3a1b11.jpg'],
+    rating: 4.1,
+    variants: [
+      { sku: 'p2-std', label: 'Standard', stock: 10 }
+    ],
+    badges: ['New']
+  },
+  {
+    id: 'p3',
+    title: 'Minimal Desk Lamp',
+    price: 42.50,
+    category: 'home',
+    images: ['https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=800'],
+    rating: 4.4,
+    variants: [
+      { sku: 'p3-w', label: 'White', stock: 7 }
+    ],
+    badges: []
+  },
+  {
+    id: 'p4',
+    title: 'Golden Miniature Sculptures',
+    price: 42.50,
+    category: 'home',
+    images: ['4c60b9bc7417139b143d3780f9711b48.jpg'],
+    rating: 4.4,
+    variants: [
+      { sku: 'p3-w', label: 'White', stock: 7 }
+    ],
+    badges: []
+  },
+  {
+    id: 'p5',
+    title: 'Noise-cancelling Headphones',
+    price: 199.00,
+    category: 'electronics',
+    images: ['2f2084fa5f01539ef8483956c5b1ffe8.jpg'],
+    rating: 4.6,
+    variants: [
+      { sku: 'p1-bk', label: 'Black', stock: 5 },
+      { sku: 'p1-bl', label: 'Blue', stock: 3 }
+    ],
+    badges: ['Trending']
+  },
+  {
+    id: 'p6',
+    title: 'Ceramic Mug Set',
+    price: 28.00,
+    category: 'home',
+    images: ['9b353d737425b694d5b6977f7d57a24f.jpg'],
+    rating: 4.0,
+    variants: [
+      { sku: 'p6-6', label: '6pcs', stock: 12 }
+    ],
+    badges: []
+  },
+   {
+    id: 'p7',
+    title: 'Wireless LED Gaming Mouse',
+    price: 59.99,
+    category: 'electronics',
+    images: ['c03178f3ed8185d7f10ef79c78bf4e91.jpg'],
+    rating: 4.1,
+    variants: [
+      { sku: 'p2-std', label: 'Standard', stock: 10 }
+    ],
+    badges: ['New']
+  },
+  {
+    id: 'p8',
+    title: 'Lamp',
+    price: 42.50,
+    category: 'home',
+    images: ['03b7d9a7e61dc28419566c393e2c26e5.jpg'],
+    rating: 4.4,
+    variants: [
+      { sku: 'p3-w', label: 'White', stock: 7 }
+    ],
+    badges: []
+  },
+  {
+    id: 'p9',
+    title: 'Custom Air Force',
+    price: 89.00,
+    category: 'shoes',
+    images: ['4c41b03098b3dae7c1329c05c7115e32.jpg'],
+    rating: 4.2,
+    variants: [
+      { sku: 'p4-9', label: 'Size 9', stock: 2 },
+      { sku: 'p4-10', label: 'Size 10', stock: 4 }
+    ],
+    badges: ['Sale']
+  },
+  {
+    id: 'p10',
+    title: 'USB flash drive',
+    price: 199.00,
+    category: 'electronics',
+    images: ['ead12dbe151e7a4261f1d57cc4942b42.jpg'],
+    rating: 4.6,
+    variants: [
+      { sku: 'p1-bk', label: 'Black', stock: 5 },
+      { sku: 'p1-bl', label: 'Blue', stock: 3 }
+    ],
+    badges: ['Trending']
+  },
+  {
+    id: 'p11',
+    title: 'Ceramic Mug Set',
+    price: 28.00,
+    category: 'home',
+    images: ['288a74ca157de712c14b0ed6ad22e56b.jpg'],
+    rating: 4.0,
+    variants: [
+      { sku: 'p6-6', label: '6pcs', stock: 12 }
+    ],
+    badges: []
+  }
+  ,
+   {
+    id: 'p12',
+    title: 'Wall art',
+    price: 59.99,
+    category: 'home',
+    images: ['6d092743846c32104c157d602220efc2.jpg'],
+    rating: 4.1,
+    variants: [
+      { sku: 'p2-std', label: 'Standard', stock: 10 }
+    ],
+    badges: ['New']
+  },
+  {
+    id: 'p13',
+    title: 'Phone holder',
+    price: 42.50,
+    category: 'electronics',
+    images: ['455b5ef498b50dfa49e6988011af09b0.jpg'],
+    rating: 4.4,
+    variants: [
+      { sku: 'p3-w', label: 'White', stock: 7 }
+    ],
+    badges: []
+  },
+  {
+    id: 'p14',
+    title: 'Boys shoes',
+    price: 89.00,
+    category: 'shoes',
+    images: ['7960906fd0f2450299f499944212a806.jpg'],
+    rating: 4.2,
+    variants: [
+      { sku: 'p4-9', label: 'Size 9', stock: 2 },
+      { sku: 'p4-10', label: 'Size 10', stock: 4 }
+    ],
+    badges: ['Sale']
+  },
+  {
+    id: 'p15',
+    title: 'electric guitar',
+    price: 199.00,
+    category: 'electronics',
+    images: ['e6f76cf70a7e62a98409cdf4d09f5d09.jpg'],
+    rating: 4.6,
+    variants: [
+      { sku: 'p1-bk', label: 'Black', stock: 5 },
+      { sku: 'p1-bl', label: 'Blue', stock: 3 }
+    ],
+    badges: ['Trending']
+  },
+  {
+    id: 'p16',
+    title: 'Knife Set',
+    price: 28.00,
+    category: 'home',
+    images: ['f4200c9bb262c2959442a1697f017eea.jpg'],
+    rating: 4.0,
+    variants: [
+      { sku: 'p6-6', label: '6pcs', stock: 12 }
+    ],
+    badges: []
+  }
+  ,
+   {
+    id: 'p17',
+    title: 'Misting Fan',
+    price: 59.99,
+    category: 'electronics',
+    images: ['f18da5e5572d2b839afba4c21a8b0a28.jpg'],
+    rating: 4.1,
+    variants: [
+      { sku: 'p2-std', label: 'Standard', stock: 10 }
+    ],
+    badges: ['New']
+  },
+  {
+    id: 'p18',
+    title: 'Ceramic Pots',
+    price: 42.50,
+    category: 'home',
+    images: ['c6db4f3013b11386f786d104a31fad89.jpg'],
+    rating: 4.4,
+    variants: [
+      { sku: 'p3-w', label: 'White', stock: 7 }
+    ],
+    badges: []
+  },
+  {
+    id: 'p19',
+    title: 'Women Shoes',
+    price: 89.00,
+    category: 'shoes',
+    images: ['d0c2788ecb989131c6dceb92b0e22e7e.jpg'],
+    rating: 4.2,
+    variants: [
+      { sku: 'p4-9', label: 'Size 9', stock: 2 },
+      { sku: 'p4-10', label: 'Size 10', stock: 4 }
+    ],
+    badges: ['Sale']
+  },
+  {
+    id: 'p20',
+    title: 'Lamp clock',
+    price: 199.00,
+    category: 'electronics',
+    images: ['ccc0224fe2bd9becd686dd9b7739dbdc.jpg'],
+    rating: 4.6,
+    variants: [
+      { sku: 'p1-bk', label: 'Black', stock: 5 },
+      { sku: 'p1-bl', label: 'Blue', stock: 3 }
+    ],
+    badges: ['Trending']
+  },
+  {
+    id: 'p21',
+    title: 'Mezzo Set',
+    price: 28.00,
+    category: 'home',
+    images: ['4832a3786a7bf5a1b4f185cb8db41744.jpg'],
+    rating: 4.0,
+    variants: [
+      { sku: 'p6-6', label: '6pcs', stock: 12 }
+    ],
+    badges: []
+  }
+  ,
+   {
+    id: 'p22',
+    title: 'Keyboard',
+    price: 59.99,
+    category: 'electronics',
+    images: ['d176daf3d5bc7e25387b51100666ad0e.jpg'],
+    rating: 4.1,
+    variants: [
+      { sku: 'p2-std', label: 'Standard', stock: 10 }
+    ],
+    badges: ['New']
+  },
+  {
+    id: 'p23',
+    title: 'Round table',
+    price: 42.50,
+    category: 'home',
+    images: ['d169ca4120abb1929ff3ccd0ab4a832c.jpg'],
+    rating: 4.4,
+    variants: [
+      { sku: 'p3-w', label: 'White', stock: 7 }
+    ],
+    badges: []
+  },
+  {
+    id: 'p24',
+    title: 'Baby shoes',
+    price: 89.00,
+    category: 'shoes',
+    images: ['944b718661f88e9828ea4a57dc7c8b54.jpg'],
+    rating: 4.2,
+    variants: [
+      { sku: 'p4-9', label: 'Size 9', stock: 2 },
+      { sku: 'p4-10', label: 'Size 10', stock: 4 }
+    ],
+    badges: ['Sale']
+  },
+  {
+    id: 'p25',
+    title: 'table lamp',
+    price: 199.00,
+    category: 'electronics',
+    images: ['6a228aaee4d2ac7447139b9cb992c96e.jpg'],
+    rating: 4.6,
+    variants: [
+      { sku: 'p1-bk', label: 'Black', stock: 5 },
+      { sku: 'p1-bl', label: 'Blue', stock: 3 }
+    ],
+    badges: ['Trending']
+
+  } 
+];
+
+
+
+const state={products:productsData.slice(),cart:{},wishlist:[],recentlyViewed:[],coupons:{'SAVE10':{type:'percent',value:10},'FREESHIP':{type:'shipping',value:0}},appliedCoupon:null};
+const $=s=>document.querySelector(s);
+
+// UTILS
+function saveAll(){localStorage.setItem('nl_cart',JSON.stringify(state.cart));localStorage.setItem('nl_wishlist',JSON.stringify(state.wishlist));localStorage.setItem('nl_recent',JSON.stringify(state.recentlyViewed));localStorage.setItem('nl_theme',document.body.classList.contains('dark')?'dark':'light');localStorage.setItem('nl_coupon',state.appliedCoupon||'');}
+function loadAll(){state.cart=JSON.parse(localStorage.getItem('nl_cart')||'{}');state.wishlist=JSON.parse(localStorage.getItem('nl_wishlist')||'[]');state.recentlyViewed=JSON.parse(localStorage.getItem('nl_recent')||'[]');const theme=localStorage.getItem('nl_theme')||'light';if(theme==='dark')document.body.classList.add('dark');state.appliedCoupon=localStorage.getItem('nl_coupon')||null;}
+function formatPrice(n){return '$'+n.toFixed(2);}
+function showAlert(msg,type='success'){const d=document.createElement('div');d.className=`stock-alert ${type==='success'?'stock-success':'stock-danger'}`;d.innerText=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),1500);}
+
+// THEME
+$('#themeToggle').onclick=()=>{document.body.classList.toggle('dark');saveAll();}
+
+// CART
+function addToCart(id,sku=null,qty=1){const p=state.products.find(x=>x.id===id);const variant=sku?p.variants.find(v=>v.sku===sku):p.variants[0];const key=sku?`${id}::${sku}`:id;const currentQty=(state.cart[key]?.qty||0)+qty;if(currentQty>variant.stock){showAlert(`Only ${variant.stock} in stock!`,'danger');return;}state.cart[key]={id,variant:sku,qty:currentQty};saveAll();renderCart();}
+function renderCart(){const root=$('#cartItems');root.innerHTML='';const keys=Object.keys(state.cart);if(!keys.length){root.innerHTML='<div class="empty">Cart is empty.</div>';}keys.forEach(k=>{const it=state.cart[k];const p=state.products.find(x=>x.id===it.id);const variant=p.variants.find(v=>v.sku===it.variant)||p.variants[0];const row=document.createElement('div');row.className='cart-row';row.innerHTML=`<div class="mini" style="background-image:url(${p.images[0]})"></div><div style="flex:1"><div>${p.title}${variant.label?`(${variant.label})`:''}</div><div class="small muted">${formatPrice(p.price)} x ${it.qty}</div><div class="qty"><button class="dec">-</button><span>${it.qty}</span><button class="inc">+</button></div></div><button class="wishlist-btn">🗑️</button>`;row.querySelector('.inc').onclick=()=>addToCart(it.id,it.variant,1);row.querySelector('.dec').onclick=()=>{if(it.qty>1){addToCart(it.id,it.variant,-1);}else{delete state.cart[k];renderCart();saveAll();}};row.querySelector('.wishlist-btn').onclick=()=>{delete state.cart[k];renderCart();saveAll();};root.appendChild(row);});updateTotals();$('#cartCount').innerText=keys.length;}
+function updateTotals(){let subtotal=0;Object.values(state.cart).forEach(it=>{const p=state.products.find(x=>x.id===it.id);subtotal+=p.price*it.qty;});let shipping=10;let tax=subtotal*0.07;let total=subtotal+shipping+tax;if(state.appliedCoupon){const c=state.coupons[state.appliedCoupon];if(c.type==='percent'){total=total*(1-c.value/100);}else if(c.type==='flat'){total=total-c.value;}else if(c.type==='shipping'){shipping=0;total=subtotal+shipping+tax;}}$('#subtotal').innerText=formatPrice(subtotal);$('#shippingLabel').innerText=formatPrice(shipping);$('#taxLabel').innerText=formatPrice(tax);$('#grandTotal').innerText=formatPrice(total);$('#couponLabel').innerText=state.appliedCoupon||'No coupon';}
+
+// PRODUCTS
+function renderProducts(list=state.products){const root=$('#products');root.innerHTML='';list.forEach(p=>{const card=document.createElement('div');card.className='card';card.innerHTML=`<div class="thumb" style="background-image:url(${p.images[0]})"><div class="price">${formatPrice(p.price)}</div></div><div class="meta"><div>${p.title}</div><div class="badges">${p.badges.map(b=>`<span class="badge">${b}</span>`).join('')}</div></div><div class="stars">${'★'.repeat(Math.round(p.rating))}</div><button class="btn-primary addCart">Add to cart</button><button class="wishlist-btn">${state.wishlist.includes(p.id)?'❤️':'🤍'}</button>`;card.querySelector('.addCart').onclick=()=>addToCart(p.id);card.querySelector('.wishlist-btn').onclick=()=>{if(state.wishlist.includes(p.id)){state.wishlist=state.wishlist.filter(x=>x!==p.id);}else{state.wishlist.push(p.id);}saveAll();renderProducts(list);};card.querySelector('.thumb').onclick=()=>openDetails(p.id);root.appendChild(card);});$('#count').innerText=list.length;}
+function renderRecentlyViewed(){const root=$('#recentlyViewed');root.innerHTML='';state.recentlyViewed.forEach(id=>{const p=state.products.find(x=>x.id===id);const card=document.createElement('div');card.className='card';card.innerHTML=`<div class="thumb" style="background-image:url(${p.images[0]})"></div><div class="small muted">${p.title}</div>`;card.onclick=()=>openDetails(id);root.appendChild(card);});}
+function openDetails(id){const p=state.products.find(x=>x.id===id);const modal=$('#modalContent');modal.innerHTML=`<h2>${p.title}</h2><img src="${p.images[0]}" style="max-width:100%;border-radius:12px"/><p>${formatPrice(p.price)}</p><select id="variantSelect">${p.variants.map(v=>`<option value="${v.sku}">${v.label} (${v.stock} left)</option>`)}</select><button id="addModalCart" class="btn-primary">Add to cart</button>`;$('#backdrop').style.display='flex';$('#addModalCart').onclick=()=>{const sku=$('#variantSelect').value;addToCart(id,sku,1);$('#backdrop').style.display='none';};if(!state.recentlyViewed.includes(id)){state.recentlyViewed.unshift(id);if(state.recentlyViewed.length>10)state.recentlyViewed.pop();}saveAll();renderRecentlyViewed();}
+$('#backdrop').onclick=e=>{if(e.target==$('#backdrop'))$('#backdrop').style.display='none';}
+
+// SEARCH & FILTER
+$('#search').oninput=e=>{const q=e.target.value.toLowerCase();const suggestions=state.products.filter(p=>p.title.toLowerCase().includes(q)).slice(0,5);const box=$('#suggestions');if(!q){box.style.display='none';return;}box.style.display='block';box.innerHTML=suggestions.map(p=>`<div style="padding:6px;cursor:pointer">${p.title}</div>`).join('');box.querySelectorAll('div').forEach((el,i)=>{el.onclick=()=>{openDetails(suggestions[i].id);box.style.display='none';}});};
+$('#category').onchange=applyFilters;$('#clearFilters').onclick=()=>{$('#search').value='';$('#category').value='all';applyFilters();}
+function applyFilters(){const cat=$('#category').value;const q=$('#search').value.toLowerCase();const list=state.products.filter(p=>(cat==='all'||p.category===cat)&&(!q||p.title.toLowerCase().includes(q)));renderProducts(list);}
+
+// COUPON
+$('#applyCoupon').onclick=()=>{const code=$('#coupon').value.toUpperCase();if(state.coupons[code]){state.appliedCoupon=code;showAlert(`Coupon ${code} applied!`);renderCart();saveAll();}else{showAlert(`Invalid coupon code!`,'danger');state.appliedCoupon=null;renderCart();saveAll();}}
+
+// CHECKOUT
+$('#checkoutBtn').onclick=()=>{confetti();alert('Checkout complete!');state.cart={};state.appliedCoupon=null;renderCart();saveAll();}
+function confetti(){for(let i=0;i<50;i++){const d=document.createElement('div');d.className='confetti-piece';d.style.background=`hsl(${Math.random()*360},80%,60%)`;d.style.left=Math.random()*window.innerWidth+'px';d.style.top='-10px';d.style.width=Math.random()*8+2+'px';d.style.height=Math.random()*8+2+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),2000);}}
+
+// LOAD
+loadAll();renderProducts();renderCart();renderRecentlyViewed();
+</script>
+</body>
+</html>
